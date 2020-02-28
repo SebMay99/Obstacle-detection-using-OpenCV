@@ -22,7 +22,7 @@ def setup():
     print("Mission 1 begins")
     print("Take off!")
     command_publisher.publish("TAKEOFF")
-    time.sleep(5)
+    # time.sleep(5)
 
 
 def get_video():
@@ -40,7 +40,7 @@ def callback(data):
     global app
     global command_publisher
 
-    rate = rospy.Rate(30)  # 1hz
+    rate = rospy.Rate(60)  # 60hz
     bridge = CvBridge()
     img = bridge.imgmsg_to_cv2(data, "bgr8")
     img = cv2.resize(img, (400, 224))
@@ -65,13 +65,14 @@ def callback(data):
         if not contours:
             command_publisher.publish("APPROACH")
             rate.sleep()
-            cv2.putText(img, "TOO CLOSE", (110, 180),
+            cv2.putText(img, "CLOSE", (110, 180),
                         cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 255), 3)
+            app = 1
 
         else:
             bigone = max(contours, key=cv2.contourArea) if max else None
             area = cv2.contourArea(bigone)
-            if area > 5000 and app == 0:
+            if area > 1000 and app == 0:
                 x, y, w, h = cv2.boundingRect(bigone)
                 cv2.rectangle(img, (x, y), (x+w, y+h), (0, 0, 255), 2)
                 cv2.putText(img, "Obstacle", (x+w/2, y-20),
@@ -79,17 +80,17 @@ def callback(data):
                 obs_area = w*h
                 print(obs_area)
 
-                if obs_area <= 30000 and app == 0 and obs_area > 9000:
+                if obs_area <= 30000 and app == 0 and obs_area > 3000:
 
                     command_publisher.publish("GO")
                     rate.sleep()
                     cv2.putText(
                         img, "GO", (160, 180), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 255, 0), 3)
 
-                if obs_area <= 7000:
+                if obs_area <= 3000:
                     command_publisher.publish("APPROACH")
                     rate.sleep()
-                    cv2.putText(img, "TOO CLOSE", (110, 180),
+                    cv2.putText(img, "CLOSE", (110, 180),
                                 cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 255), 3)
                     app = 1
 
@@ -106,6 +107,12 @@ def callback(data):
                     rate.sleep()
                     cv2.putText(img, "FINAL", (110, 180),
                                 cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 255), 3)
+
+    else:
+        command_publisher.publish("APPROACH")
+        rate.sleep()
+        cv2.putText(img, "FINAL", (110, 180),
+                    cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 255), 3)
 
     if app == 1:
         cv2.putText(img, "FINAL", (110, 180),
