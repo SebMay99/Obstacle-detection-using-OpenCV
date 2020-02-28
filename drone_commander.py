@@ -28,7 +28,7 @@ def commander(data):
     command = data.data
     print(command)
     time = 0.6
-    final_time = 1
+    final_time = 6
 
     takeoff_publisher = rospy.Publisher(
         'bebop/takeoff', Empty, queue_size=1)
@@ -84,7 +84,7 @@ def commander(data):
         counter = 0.0
         movement_cmd = Twist()
         while not rospy.is_shutdown():
-            movement_cmd.linear.x = -0.1
+            movement_cmd.linear.x = 0.1
             movement_cmd.linear.y = 0
             movement_cmd.linear.z = 0
             movement_cmd.angular.x = 0
@@ -117,11 +117,14 @@ def commander(data):
 
 
 def setup():
+    print("Commander starting...")
     rospy.init_node("bebop_commander")
     rospy.Subscriber('chatter', String, abort)
     rospy.Subscriber('obstacle_finder/cmd', String,
                      commander, queue_size=1, buff_size=2**12)
     rate = rospy.Rate(5)  # 5hz
+
+    print("Commander ready")
 
     rospy.spin()
 
