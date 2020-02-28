@@ -8,8 +8,8 @@ from cv_bridge import CvBridge, CvBridgeError
 from matplotlib import pyplot as plt
 import sys
 import os
+import time
 
-close = 0
 app = 0
 command_publisher = rospy.Publisher(
     'obstacle_finder/cmd', String, queue_size=10)
@@ -20,7 +20,9 @@ def setup():
     global command_publisher
     rospy.init_node("obstacle_finder")
     print("Mission 1 begins")
+    print("Take off!")
     command_publisher.publish("TAKEOFF")
+    time.sleep(5)
 
 
 def get_video():
@@ -35,7 +37,6 @@ def get_video():
 
 def callback(data):
 
-    global close
     global app
     global command_publisher
 
@@ -51,9 +52,9 @@ def callback(data):
     thresh = cv2.threshold(sat, 90, 150, 0)[1]
 
     # apply morphology close to fill interior regions in mask
-    kernel = np.ones((27, 27), np.uint8)
-    morph = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel)
     kernel = np.ones((29, 29), np.uint8)
+    morph = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel)
+    kernel = np.ones((31, 31), np.uint8)
     morph = cv2.morphologyEx(morph, cv2.MORPH_CLOSE, kernel)
 
     # get contours (presumably only 1) and fit to simple polygon (quadrilateral)
@@ -62,7 +63,10 @@ def callback(data):
    # find the biggest countour (c) by the area
     if contours != 0 and app == 0:
         if not contours:
-            print("Empty")
+            command_publisher.publish("APPROACH")
+            rate.sleep()
+            cv2.putText(img, "TOO CLOSE", (110, 180),
+                        cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 255), 3)
 
         else:
             bigone = max(contours, key=cv2.contourArea) if max else None
@@ -74,37 +78,42 @@ def callback(data):
                             cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
                 obs_area = w*h
                 print(obs_area)
-                if obs_area <= 25000 and close == 0:
+
+                if obs_area <= 30000 and app == 0 and obs_area > 9000:
 
                     command_publisher.publish("GO")
                     rate.sleep()
                     cv2.putText(
                         img, "GO", (160, 180), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 255, 0), 3)
 
-                if obs_area > 25000 and close == 0:
+                if obs_area <= 7000:
+                    command_publisher.publish("APPROACH")
+                    rate.sleep()
+                    cv2.putText(img, "TOO CLOSE", (110, 180),
+                                cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 255), 3)
+                    app = 1
+
+                if obs_area > 30000 and app == 0:
                     command_publisher.publish("STOP")
                     rate.sleep()
                     cv2.putText(img, "CLOSE", (110, 180),
                                 cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 255), 3)
-                    close = 1
+
                     app = 1
 
-                if close == 1 and app == 1:
+                if app == 1:
                     command_publisher.publish("APPROACH")
                     rate.sleep()
-                    cv2.putText(img, "FINAL APPROACH", (110, 180),
+                    cv2.putText(img, "FINAL", (110, 180),
                                 cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 255), 3)
 
     if app == 1:
         cv2.putText(img, "FINAL", (110, 180),
                     cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 255), 3)
 
-    # display it
+    # Display image
     cv2.imshow("IMAGE", img)
-    #cv2.imshow("SAT", sat)
-    #cv2.imshow("THRESH", thresh)
-    #cv2.imshow("MORPH", morph)
-    #cv2.imshow("RESULT", result)
+
     cv2.waitKey(1)
 
 
