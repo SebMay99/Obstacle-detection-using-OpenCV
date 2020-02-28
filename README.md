@@ -12,11 +12,11 @@ Read the input
  - Draw the polygon on the input
  - Analyze the obstacle's area
  
-Achieved:
+Achieved
  -Obstacle detection
  -Area analysis
  -ROS implementation
  
-Tasks:
+Tasks
  -Improve filters fiability
  -Dynamic filtes
