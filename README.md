@@ -1,4 +1,6 @@
-# Obstacle-detection-using-OpenCV
+# Obstacle-detection-using-OpenCV(Alpha/Closed)
+
+# Alpha Version
 
 The goal is to detect a rectangle obstacle by using OpenCV, controlling a drone's movement through ROS in order to make an approach without colliding with the obstacle
 
@@ -18,8 +20,11 @@ Achieved:
  - Area analysis
  - ROS implementation
  
-Future tasks:
+Future tasks for Beta Version :
 
  - Improve filters fiability
  - Dynamic filters
  - Fix bugs
+ 
+# Tested and working 
+# Closed
