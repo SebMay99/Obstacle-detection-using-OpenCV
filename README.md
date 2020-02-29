@@ -26,5 +26,4 @@ Future tasks for Beta Version :
  - Dynamic filters
  - Fix bugs
  
-# Tested and working 
-# Closed
+# Tested and working, closed
